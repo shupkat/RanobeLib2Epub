@@ -13,7 +13,7 @@ from yarl import URL
 from chapter_parser import parse_chapter
 from ebooklib import epub
 
-ranobe_url = input("Ссылка на ранобе: ")
+ranobe_url = input("Ссылка на ранобэ: ")
 ranobe_host = "https://ranobelib.me"
 reqs = requests.session()
 reqs.headers = {"user-agent": "".join(random.choices(string.ascii_lowercase, k=12))}
