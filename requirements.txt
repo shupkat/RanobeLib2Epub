@@ -1,0 +1,5 @@
+beautifulsoup4==4.12.2
+EbookLib==0.18
+python-slugify==8.0.1
+Requests==2.31.0
+yarl==1.9.2
