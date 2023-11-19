@@ -10,7 +10,8 @@
     6. Выбор переводчика 
     7. Разделение файлов по томам
 
-![image](https://github.com/shupkat/RanobeLib2Epub/assets/141467876/6adfb6bf-428c-43e4-b719-7cbb7efa41e6)
+![image](https://github.com/shupkat/RanobeLib2Epub/assets/141467876/3ff3cbd7-055a-4dba-9b9e-105a8909a800)
+
 
 (Пример работы программы на этапе выбора перевода)
 
