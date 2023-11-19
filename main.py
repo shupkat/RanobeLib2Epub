@@ -35,7 +35,7 @@ def main_info(ranobe):
     branches = chapters["chapters"]["teams"]
     teams = []
     if len(branches) > 1:
-        print("Выберете переводчика\n")
+        print("Выберите переводчика\n")
         for inx, team in enumerate(branches):
             team_name = team["name"]
             team_branch_id = team["branch_id"]
