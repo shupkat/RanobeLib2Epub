@@ -94,7 +94,6 @@ for tom, chapters in ranobe_info["chapters"].items():
         print(f"Том {tom} Глава {chapter['number']}")
         if ranobe_info['branch_id']:
             chapter_url = f"{api_host}/api/manga/{ranobe_info['ranobe_url_id']}/chapter?branch_id={ranobe_info['branch_id']}&number={chapter['number']}&volume={tom}"
-            print(f"{api_host}/api/manga/{ranobe_info['ranobe_url_id']}/chapter?branch_id={ranobe_info['branch_id']}&number={chapter['number']}&volume={tom}")
         else:
             chapter_url = f"{api_host}/api/manga/{ranobe_info['ranobe_url_id']}/chapter?number={chapter['number']}&volume={tom}"
         chapter_content, chapters_imgs = parse_chapter(chapter_url)
