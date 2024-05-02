@@ -1,4 +1,6 @@
 import string
+import traceback
+
 import requests
 import random
 import uuid
@@ -11,13 +13,11 @@ def parse_chapter(url):
     while 1:
         try:
             headers = {"user-agent": "".join(random.choices(string.ascii_lowercase, k=12))}
-            r = requests.get(url, headers=headers).text
-            soup = BeautifulSoup(r, "lxml")
-            content = soup.find("div", {"class": "reader-container container container_center"})
-            content.attrs = {}
+            r = requests.get(url, headers=headers).json()["data"]
+            content = BeautifulSoup(r["content"], "lxml")
             break
         except:
-            pass
+            print(traceback.format_exc())
     for i in content.find_all(recursive=True):
         a = list(i.attrs.keys())
         for y in a:
