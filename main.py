@@ -54,9 +54,10 @@ def main_info(ranobe):
     ranobe_info["branch_id"] = branch_id
     ranobe_info["chapters"] = {}
     for c in chapters:
-        if str(c["volume"]) not in ranobe_info["chapters"]:
-            ranobe_info["chapters"][str(c["volume"])] = []
-        ranobe_info["chapters"][str(c["volume"])].append(c)
+        if not branch_id or int(branch_id) in [x["branch_id"] for x in c["branches"]]:
+            if str(c["volume"]) not in ranobe_info["chapters"]:
+                ranobe_info["chapters"][str(c["volume"])] = []
+            ranobe_info["chapters"][str(c["volume"])].append(c)
     return ranobe_info
 
 
@@ -98,7 +99,7 @@ for tom, chapters in ranobe_info["chapters"].items():
             chapter_url = f"{api_host}/api/manga/{ranobe_info['ranobe_url_id']}/chapter?number={chapter['number']}&volume={tom}"
         chapter_content, chapters_imgs = parse_chapter(chapter_url)
         book_imgs += chapters_imgs
-        c = epub.EpubHtml(title=f"Глава {chapter['number']} {chapter['name']}",
+        c = epub.EpubHtml(title=f"Глава {chapter['number']} - {chapter['name']}",
                           file_name=f"{str(uuid.uuid4())}.xhtml", lang="ru")
         c.content = f'<h2 align="center" style="text-align:center;">Глава {chapter["number"]} - {chapter["name"]}</h2>{chapter_content}'
         epub_chapters.append(c)
