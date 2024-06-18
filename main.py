@@ -26,6 +26,7 @@ def main_info(ranobe):
     chapters = reqs.get(f"{api_host}/api/manga/{ranobe}/chapters").json()["data"]
     ranobe_id = page["id"]
     branches = reqs.get(f"{api_host}/api/branches/{ranobe_id}?team_defaults=1").json()["data"]
+    ranobe_info["ranobe_id"] = ranobe_id
     ranobe_info["title"] = page["rus_name"]
     ranobe_info["description"] = page["summary"]
     ranobe_info["authors"] = [x["name"] for x in page["authors"]]
