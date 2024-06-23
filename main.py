@@ -2,10 +2,8 @@
 import requests
 import random
 import string
-from bs4 import BeautifulSoup
-import re
 import uuid
-import json
+import sys
 from slugify import slugify
 import os
 import shutil
@@ -17,12 +15,24 @@ ranobe_url = input("Ссылка на ранобэ: ")
 ranobe_host = "https://ranobelib.me"
 api_host = "https://api.lib.social"
 reqs = requests.session()
-reqs.headers = {"user-agent": "".join(random.choices(string.ascii_lowercase, k=12))}
+reqs.headers = {
+    "user-agent": "Mozilla/5.0 (Linux i675 ) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/55.0.3924.176 Safari/534"
+    }
 
 
 def main_info(ranobe):
-    ranobe_info = {"ranobe_url_id":ranobe}
-    page = reqs.get(f"{api_host}/api/manga/{ranobe}?fields[]=background&fields[]=eng_name&fields[]=otherNames&fields[]=summary&fields[]=releaseDate&fields[]=type_id&fields[]=caution&fields[]=views&fields[]=close_view&fields[]=rate_avg&fields[]=rate&fields[]=genres&fields[]=tags&fields[]=teams&fields[]=franchise&fields[]=authors&fields[]=publisher&fields[]=userRating&fields[]=moderated&fields[]=metadata&fields[]=metadata.count&fields[]=metadata.close_comments&fields[]=manga_status_id&fields[]=chap_count&fields[]=status_id&fields[]=artists&fields[]=format").json()["data"]
+    ranobe_info = {"ranobe_url_id": ranobe}
+    info_url = f"{api_host}/api/manga/{ranobe}?fields[]=background&fields[]=eng_name&fields[]=otherNames&fields[]=summary&fields[]=releaseDate&fields[]=type_id&fields[]=caution&fields[]=views&fields[]=close_view&fields[]=rate_avg&fields[]=rate&fields[]=genres&fields[]=tags&fields[]=teams&fields[]=franchise&fields[]=authors&fields[]=publisher&fields[]=userRating&fields[]=moderated&fields[]=metadata&fields[]=metadata.count&fields[]=metadata.close_comments&fields[]=manga_status_id&fields[]=chap_count&fields[]=status_id&fields[]=artists&fields[]=format"
+    page = reqs.get(info_url)
+    if page.status_code == 404:
+        if os.path.isfile("token.txt"):
+            with open("token.txt", "r") as f:
+                reqs.headers["Authorization"] = f"Bearer {f.read()}"
+            page = reqs.get(info_url)
+        else:
+            print("Невозможно получить данные. Если страница имеет ограничение по возрасту, то прочтите файл howToAuth.md")
+            sys.exit()
+    page = page.json()["data"]
     chapters = reqs.get(f"{api_host}/api/manga/{ranobe}/chapters").json()["data"]
     ranobe_id = page["id"]
     branches = reqs.get(f"{api_host}/api/branches/{ranobe_id}?team_defaults=1").json()["data"]
@@ -37,19 +47,22 @@ def main_info(ranobe):
     for b in branches:
         name = ", ".join([x["name"] for x in b["teams"]])
         branch_id = b["id"]
-        teams[branch_id] = {"name":name, "total_chapters":0}
+        teams[branch_id] = {
+            "name": name,
+            "total_chapters": 0
+            }
 
     if len(teams.items()) > 1:
         print("Выберите переводчика\n")
         for i in chapters:
             if i['branches']:
                 for branch in i["branches"]:
-                    teams[branch["branch_id"]]["total_chapters"]+=1
-        for inx,team in enumerate(teams.items()):
+                    teams[branch["branch_id"]]["total_chapters"] += 1
+        for inx, team in enumerate(teams.items()):
             print(f"{inx} - {team[1]['name']}. Глав переведено {team[1]['total_chapters']}")
         branch_id = list(teams.keys())[int(input("Номер переводчика: "))]
     else:
-        #branch_id = branches[0]["id"]
+        # branch_id = branches[0]["id"]
         branch_id = None
     # -------------------
     ranobe_info["branch_id"] = branch_id
@@ -72,7 +85,7 @@ if os.path.exists(book_folder):
     os.mkdir(book_folder)
 else:
     os.mkdir(book_folder)
-poster_content = reqs.get(ranobe_info["poster_url"]).content
+poster_content = requests.get(ranobe_info["poster_url"]).content
 for tom, chapters in ranobe_info["chapters"].items():
     book_imgs = []
     book = epub.EpubBook()
@@ -98,7 +111,7 @@ for tom, chapters in ranobe_info["chapters"].items():
             chapter_url = f"{api_host}/api/manga/{ranobe_info['ranobe_url_id']}/chapter?branch_id={ranobe_info['branch_id']}&number={chapter['number']}&volume={tom}"
         else:
             chapter_url = f"{api_host}/api/manga/{ranobe_info['ranobe_url_id']}/chapter?number={chapter['number']}&volume={tom}"
-        chapter_content, chapters_imgs = parse_chapter(chapter_url)
+        chapter_content, chapters_imgs = parse_chapter(chapter_url, reqs)
         book_imgs += chapters_imgs
         c = epub.EpubHtml(title=f"Глава {chapter['number']} - {chapter['name']}",
                           file_name=f"{str(uuid.uuid4())}.xhtml", lang="ru")
@@ -111,5 +124,10 @@ for tom, chapters in ranobe_info["chapters"].items():
     book.add_item(epub.EpubNav())
     for img in book_imgs:
         book.add_item(img)
-    epub.write_epub(f"./{book_folder}/{book_filename}.epub", book, {"play_order": {"enabled": True, "start_from": 1}})
+    epub.write_epub(f"./{book_folder}/{book_filename}.epub", book, {
+        "play_order": {
+            "enabled": True,
+            "start_from": 1
+            }
+        })
     # -----------------------------------------------------------

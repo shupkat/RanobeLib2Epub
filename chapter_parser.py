@@ -37,14 +37,11 @@ def fix_images_scheme(json_doc, img_urls):
     return json_doc
 
 
-def parse_chapter(url):
+def parse_chapter(url, reqs):
     images = {}
     while 1:
         try:
-            headers = {
-                "user-agent": "".join(random.choices(string.ascii_lowercase, k=12))
-                }
-            resp = requests.get(url, headers=headers)
+            resp = reqs.get(url)
             if resp.status_code == 429:
                 # Too many requests! Wait for 10 seconds
                 time.sleep(10)
@@ -82,7 +79,7 @@ def parse_chapter(url):
     epub_images = []
     for uid, info in images.items():
         info["url"] = info["url"].replace(ranobe_host, api_host)
-        r = requests.get(info["url"], headers=headers)
+        r = requests.get(info["url"])
         content_type = r.headers["content-type"]
         img = epub.EpubImage(
             uid=uid,
