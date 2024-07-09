@@ -160,6 +160,7 @@ nodes: dict[str, NodeSpec] = {
 }
 
 em_dom = ["em", 0]
+u_dom = ["u", {"style": "text-decoration: underline;"}]
 strong_dom = ["strong", 0]
 code_dom = ["code", 0]
 
@@ -232,6 +233,12 @@ marks: dict[str, MarkSpec] = {
             "tag": "code"
         }],
         "toDOM": lambda _, __: code_dom
+    },
+    "underline": {
+        "parseDOM": [{
+            "tag": "u"
+        }],
+        "toDOM": lambda _, __: u_dom
     },
 }
 

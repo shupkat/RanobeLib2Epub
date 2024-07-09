@@ -49,11 +49,13 @@ def parse_chapter(url, reqs):
             r = resp.json()["data"]
             if isinstance(r["content"], str):
                 page_html = r["content"]
+                content_mode = 0
             else:
                 img_urls = {x["name"]:x["url"] for x in r["attachments"]}
                 json_content = fix_images_scheme(r["content"], img_urls)
                 doc_node = Node.from_json(schema, json_content)
                 page_html = str(DOMSerializer.from_schema(schema).serialize_fragment(doc_node.content))
+                content_mode = 1
             content = BeautifulSoup(page_html, "lxml")
             break
         except:
@@ -61,7 +63,7 @@ def parse_chapter(url, reqs):
     for i in content.find_all(recursive=True):
         a = list(i.attrs.keys())
         for y in a:
-            if y not in ["data-src", "src"]:
+            if y not in ["data-src", "src", "style"] if content_mode else ["data-src", "src"]:
                 del i.attrs[y]
         if "data-src" in i.attrs:
             i.attrs["src"] = i.attrs["data-src"]
