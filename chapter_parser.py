@@ -63,7 +63,8 @@ def parse_chapter(url, reqs):
     for i in content.find_all(recursive=True):
         a = list(i.attrs.keys())
         for y in a:
-            if y not in ["data-src", "src", "style"] if content_mode else ["data-src", "src"]:
+            whitelist = ["data-src", "src", "style"] if content_mode else ["data-src", "src"]
+            if y not in whitelist:
                 del i.attrs[y]
         if "data-src" in i.attrs:
             i.attrs["src"] = i.attrs["data-src"]
