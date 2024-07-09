@@ -97,12 +97,12 @@ for tom, chapters in ranobe_info["chapters"].items():
     for aut in ranobe_info["authors"]:
         book.add_author(aut)
     book.add_metadata("DC", "description", ranobe_info["description"])
-    st = '''.image-container {display: flex; justify-content: center}'''
-    nav_css = epub.EpubItem(uid="style_nav",
-                            file_name="style/nav.css",
-                            media_type="text/css",
-                            content=st)
-    book.add_item(nav_css)
+    #st = ''''''
+    #nav_css = epub.EpubItem(uid="style_nav",
+    #                        file_name="style/nav.css",
+    #                        media_type="text/css",
+    #                        content=st)
+    #book.add_item(nav_css)
     # -----------------------------------------------------------
     epub_chapters = []
     for chapter in chapters:

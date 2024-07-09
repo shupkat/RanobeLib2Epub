@@ -67,7 +67,7 @@ def parse_chapter(url, reqs):
             i.attrs["src"] = i.attrs["data-src"]
             del i.attrs["data-src"]
     for img in content.find_all("img", recursive=True):
-        img.parent.attrs["class"] = "image-container"
+        img.attrs["style"] = "display: block; margin: auto; max-width: 100%; max-height: 100%; height: auto;"
         uid = uuid.uuid4().hex
         filetype = str(img.attrs["src"]).split(".")[-1]
         images[uid] = {
@@ -77,6 +77,8 @@ def parse_chapter(url, reqs):
             }
         img.attrs["src"] = f"static/{uid}.{filetype}"
     epub_images = []
+    for hr in content.find_all("hr", recursive=True):
+        hr.replace_with(BeautifulSoup('<p style="text-align:center">***</p>', "html.parser"))
     for uid, info in images.items():
         info["url"] = info["url"].replace(ranobe_host, api_host)
         r = requests.get(info["url"])

@@ -12,13 +12,13 @@ br_dom = ["br"]
 nodes: dict[str, NodeSpec] = {
     "doc": {
         "content": "block+"
-        },
+    },
     "paragraph": {
         "content": "inline*",
         "group": "block",
         "parseDOM": [{
-                         "tag": "p"
-                         }],
+            "tag": "p"
+        }],
         "toDOM": lambda _: p_dom,
     },
     "blockquote": {
@@ -26,23 +26,30 @@ nodes: dict[str, NodeSpec] = {
         "group": "block",
         "defining": True,
         "parseDOM": [{
-                         "tag": "blockquote"
-                         }],
+            "tag": "blockquote"
+        }],
         "toDOM": lambda _: blockquote_dom,
     },
     "horizontal_rule": {
         "group": "block",
         "parseDOM": [{
-                         "tag": "hr"
-                         }],
+            "tag": "hr"
+        }],
+        "toDOM": lambda _: hr_dom,
+    },
+    "horizontalRule": {
+        "group": "block",
+        "parseDOM": [{
+            "tag": "hr"
+        }],
         "toDOM": lambda _: hr_dom,
     },
     "heading": {
         "attrs": {
             "level": {
                 "default": 1
-                }
-            },
+            }
+        },
         "content": "inline*",
         "group": "block",
         "defining": True,
@@ -51,38 +58,38 @@ nodes: dict[str, NodeSpec] = {
                 "tag": "h1",
                 "attrs": {
                     "level": 1
-                    }
-                },
+                }
+            },
             {
                 "tag": "h2",
                 "attrs": {
                     "level": 2
-                    }
-                },
+                }
+            },
             {
                 "tag": "h3",
                 "attrs": {
                     "level": 3
-                    }
-                },
+                }
+            },
             {
                 "tag": "h4",
                 "attrs": {
                     "level": 4
-                    }
-                },
+                }
+            },
             {
                 "tag": "h5",
                 "attrs": {
                     "level": 5
-                    }
-                },
+                }
+            },
             {
                 "tag": "h6",
                 "attrs": {
                     "level": 6
-                    }
-                },
+                }
+            },
         ],
         "toDOM": lambda node: [f"h{node.attrs['level']}", 0],
     },
@@ -93,25 +100,25 @@ nodes: dict[str, NodeSpec] = {
         "code": True,
         "defining": True,
         "parseDOM": [{
-                         "tag": "pre",
-                         "preserveWhitespace": "full"
-                         }],
+            "tag": "pre",
+            "preserveWhitespace": "full"
+        }],
         "toDOM": lambda _: pre_dom,
     },
     "text": {
         "group": "inline"
-        },
+    },
     "image": {
         "inline": True,
         "attrs": {
             "src": {},
             "alt": {
                 "default": None
-                },
+            },
             "title": {
                 "default": None
-                }
-            },
+            }
+        },
         "group": "inline",
         "draggable": True,
         "parseDOM": [
@@ -137,8 +144,8 @@ nodes: dict[str, NodeSpec] = {
         "group": "inline",
         "selectable": False,
         "parseDOM": [{
-                         "tag": "br"
-                         }],
+            "tag": "br"
+        }],
         "toDOM": lambda _: br_dom,
     },
     "hardBreak": {
@@ -146,8 +153,8 @@ nodes: dict[str, NodeSpec] = {
         "group": "inline",
         "selectable": False,
         "parseDOM": [{
-                         "tag": "br"
-                         }],
+            "tag": "br"
+        }],
         "toDOM": lambda _: br_dom,
     }
 }
@@ -162,73 +169,73 @@ marks: dict[str, MarkSpec] = {
             "href": {},
             "title": {
                 "default": None
-                }
-            },
+            }
+        },
         "inclusive": False,
         "parseDOM": [{
-                         "tag": "a",
-                         "getAttrs": lambda d: {
-                             "href": d.get("href")
-                             }
-                         }],
+            "tag": "a",
+            "getAttrs": lambda d: {
+                "href": d.get("href")
+            }
+        }],
         "toDOM": lambda node, _: [
             "a",
             {
                 "href": node.attrs["href"],
                 "title": node.attrs["title"]
-                },
+            },
             0,
         ],
     },
     "em": {
         "parseDOM": [{
-                         "tag": "i"
-                         }, {
-                         "tag": "em"
-                         }, {
-                         "style": "font-style=italic"
-                         }],
+            "tag": "i"
+        }, {
+            "tag": "em"
+        }, {
+            "style": "font-style=italic"
+        }],
         "toDOM": lambda _, __: em_dom,
     },
-"italic": {
+    "italic": {
         "parseDOM": [{
-                         "tag": "i"
-                         }, {
-                         "tag": "em"
-                         }, {
-                         "style": "font-style=italic"
-                         }],
+            "tag": "i"
+        }, {
+            "tag": "em"
+        }, {
+            "style": "font-style=italic"
+        }],
         "toDOM": lambda _, __: em_dom,
     },
     "strong": {
         "parseDOM": [{
-                         "tag": "strong"
-                         }, {
-                         "tag": "b"
-                         }, {
-                         "style": "font-weight"
-                         }],
+            "tag": "strong"
+        }, {
+            "tag": "b"
+        }, {
+            "style": "font-weight"
+        }],
         "toDOM": lambda _, __: strong_dom,
     },
-"bold": {
+    "bold": {
         "parseDOM": [{
-                         "tag": "strong"
-                         }, {
-                         "tag": "b"
-                         }, {
-                         "style": "font-weight"
-                         }],
+            "tag": "strong"
+        }, {
+            "tag": "b"
+        }, {
+            "style": "font-weight"
+        }],
         "toDOM": lambda _, __: strong_dom,
     },
     "code": {
         "parseDOM": [{
-                         "tag": "code"
-                         }],
+            "tag": "code"
+        }],
         "toDOM": lambda _, __: code_dom
-        },
+    },
 }
 
 schema: Schema[Any, Any] = Schema({
-                                      "nodes": nodes,
-                                      "marks": marks
-                                      })
+    "nodes": nodes,
+    "marks": marks
+})
