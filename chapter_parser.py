@@ -1,4 +1,5 @@
 import string
+import sys
 import time
 import traceback
 from prosemirror.model import Node
@@ -58,6 +59,8 @@ def parse_chapter(url, reqs):
                 content_mode = 1
             content = BeautifulSoup(page_html, "lxml")
             break
+        except KeyboardInterrupt:
+            sys.exit()
         except:
             print(traceback.format_exc())
     for i in content.find_all(recursive=True):

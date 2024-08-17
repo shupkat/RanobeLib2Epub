@@ -10,18 +10,23 @@ import shutil
 from yarl import URL
 from chapter_parser import parse_chapter
 from ebooklib import epub
+from args_cfg import args
 
-ranobe_url = input("Ссылка на ранобэ: ")
+if not args.url:
+    ranobe_url = input("Ссылка на ранобэ: ")
+else:
+    ranobe_url = args.url
 ranobe_host = "https://ranobelib.me"
 api_host = "https://api.lib.social"
 reqs = requests.session()
 reqs.headers = {
     "user-agent": "Mozilla/5.0 (Linux i675 ) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/55.0.3924.176 Safari/534"
-    }
-
+}
 
 def main_info(ranobe):
-    ranobe_info = {"ranobe_url_id": ranobe}
+    ranobe_info = {
+        "ranobe_url_id": ranobe
+        }
     info_url = f"{api_host}/api/manga/{ranobe}?fields[]=background&fields[]=eng_name&fields[]=otherNames&fields[]=summary&fields[]=releaseDate&fields[]=type_id&fields[]=caution&fields[]=views&fields[]=close_view&fields[]=rate_avg&fields[]=rate&fields[]=genres&fields[]=tags&fields[]=teams&fields[]=franchise&fields[]=authors&fields[]=publisher&fields[]=userRating&fields[]=moderated&fields[]=metadata&fields[]=metadata.count&fields[]=metadata.close_comments&fields[]=manga_status_id&fields[]=chap_count&fields[]=status_id&fields[]=artists&fields[]=format"
     page = reqs.get(info_url)
     if page.status_code == 404:
@@ -30,7 +35,8 @@ def main_info(ranobe):
                 reqs.headers["Authorization"] = f"Bearer {f.read()}"
             page = reqs.get(info_url)
         else:
-            print("Невозможно получить данные. Если страница имеет ограничение по возрасту, то прочтите файл howToAuth.md")
+            print(
+                "Невозможно получить данные. Если страница имеет ограничение по возрасту, то прочтите файл howToAuth.md")
             sys.exit()
     page = page.json()["data"]
     chapters = reqs.get(f"{api_host}/api/manga/{ranobe}/chapters").json()["data"]
@@ -50,28 +56,76 @@ def main_info(ranobe):
         teams[branch_id] = {
             "name": name,
             "total_chapters": 0
-            }
-
+        }
+    no_branch_id_count = 0
     if len(teams.items()) > 1:
-        print("Выберите переводчика\n")
+        if not str(args.translation):
+            print("Выберите переводчика\n")
         for i in chapters:
             if i['branches']:
                 for branch in i["branches"]:
-                    teams[branch["branch_id"]]["total_chapters"] += 1
-        for inx, team in enumerate(teams.items()):
-            print(f"{inx} - {team[1]['name']}. Глав переведено {team[1]['total_chapters']}")
-        branch_id = list(teams.keys())[int(input("Номер переводчика: "))]
+                    if not branch["branch_id"]:
+                        no_branch_id_count+=1
+                    else:
+                        teams[branch["branch_id"]]["total_chapters"] += 1
+        if not args.translation:
+            for inx, team in enumerate(teams.items()):
+                print(f"{inx} - {team[1]['name']}. Глав переведено {team[1]['total_chapters']}")
+            if no_branch_id_count:
+                if args.no_null_branch_id:
+                    print(f"Также НЕ будут скачаны {no_branch_id_count} глав с неизвестным переводчиком (см. флаг -n в разделе --help).")
+                else:
+                    print(
+                        f"Также будут скачаны {no_branch_id_count} глав с неизвестным переводчиком (см. флаг -n в разделе --help).")
+            branch_id = list(teams.keys())[int(input("Номер переводчика: "))]
+        else:
+            branch_id = list(teams.keys())[int(args.translation)]
     else:
         # branch_id = branches[0]["id"]
         branch_id = None
     # -------------------
     ranobe_info["branch_id"] = branch_id
     ranobe_info["chapters"] = {}
-    for c in chapters:
-        if not branch_id or int(branch_id) in [x["branch_id"] for x in c["branches"]]:
-            if str(c["volume"]) not in ranobe_info["chapters"]:
-                ranobe_info["chapters"][str(c["volume"])] = []
-            ranobe_info["chapters"][str(c["volume"])].append(c)
+    if not args.range or args.check_nums:
+        _chapters = []
+        for c in chapters:
+            if not branch_id or int(branch_id) in [x["branch_id"] for x in c["branches"]] or (None in [x["branch_id"] for x in c["branches"]] and not args.no_null_branch_id):
+                if str(c["volume"]) not in ranobe_info["chapters"]:
+                    ranobe_info["chapters"][str(c["volume"])] = []
+                ranobe_info["chapters"][str(c["volume"])].append(c)
+                _chapters.append(c)
+        if args.check_nums:
+            for inx, c in enumerate(_chapters):
+                print(f"{inx+1} - Том {c['volume']} Глава {c['number']}")
+            sys.exit()
+
+    else:
+        if args.range.isnumeric():
+            for c in chapters:
+                if not branch_id or int(branch_id) in [x["branch_id"] for x in c["branches"]] or (
+                        None in [x["branch_id"] for x in c["branches"]] and not args.no_null_branch_id):
+                    if str(c["volume"]) not in ranobe_info["chapters"] and str(c["volume"]) == str(args.range):
+                        ranobe_info["chapters"][str(c["volume"])] = []
+                    if str(c["volume"]) == str(args.range):
+                        ranobe_info["chapters"][str(c["volume"])].append(c)
+        else:
+            _chapters = []
+            for c in chapters:
+                if not branch_id or int(branch_id) in [x["branch_id"] for x in c["branches"]] or (
+                        None in [x["branch_id"] for x in c["branches"]] and not args.no_null_branch_id):
+                    if str(c["volume"]) not in ranobe_info["chapters"]:
+                        ranobe_info["chapters"][str(c["volume"])] = []
+                    _chapters.append(c)
+            _range = args.range
+            _range = _range.replace(" ", "")
+            _range = _range.split("-")
+            if all(_range):
+                _chapters = _chapters[int(_range[0])-1:int(_range[1])]
+            else:
+                _chapters = _chapters[int(_range[0])-1:] if _range[0] else _chapters[:int(_range[1])]
+            for c in _chapters:
+                ranobe_info["chapters"][str(c["volume"])].append(c)
+            ranobe_info["chapters"] = {x:y for x, y in ranobe_info["chapters"].items() if y}
     return ranobe_info
 
 
@@ -97,12 +151,12 @@ for tom, chapters in ranobe_info["chapters"].items():
     for aut in ranobe_info["authors"]:
         book.add_author(aut)
     book.add_metadata("DC", "description", ranobe_info["description"])
-    #st = ''''''
-    #nav_css = epub.EpubItem(uid="style_nav",
+    # st = ''''''
+    # nav_css = epub.EpubItem(uid="style_nav",
     #                        file_name="style/nav.css",
     #                        media_type="text/css",
     #                        content=st)
-    #book.add_item(nav_css)
+    # book.add_item(nav_css)
     # -----------------------------------------------------------
     epub_chapters = []
     for chapter in chapters:
@@ -128,6 +182,6 @@ for tom, chapters in ranobe_info["chapters"].items():
         "play_order": {
             "enabled": True,
             "start_from": 1
-            }
-        })
+        }
+    })
     # -----------------------------------------------------------
